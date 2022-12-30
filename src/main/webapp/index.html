@@ -1,0 +1,215 @@
+<html>
+<head>
+	<style>
+		img.background {
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			z-index: -1;
+			width: 100%;
+			height: 100%;
+			-webkit-filter: blur(3px);
+			-webkit-filter: grayscale(70%); 
+  			filter: grayscale(70%) blur(3px);
+		}
+		.input {
+			backdrop-filter: blur(14px);
+			margin: auto;
+			width: 40%;
+			border: 3px solid white;
+			justify-content: center;
+			color: white;
+			font-weight: bolder;
+			text-align: center;
+		}
+		.header {
+			margin: 0 auto;
+			color: white;
+			font-weight: bolder;
+			text-align: center;
+			backdrop-filter: blur(14px);
+			justify-content: center;
+			width: fit-content;
+			margin-bottom: 10%;
+			padding-left: 1%;
+			padding-right: 1%;
+		}
+		.heading {
+			font-size: 120px;
+		}
+
+		.description {
+			font-size: 50px;
+			margin: 0%;
+		}
+		.url-input-text {
+			font-size: large;
+		}
+		.form {
+			margin: 0;
+		}
+		.url-input-field {
+			margin-bottom: 3%;
+			width:80%;
+		}
+		.submit-button {
+			margin-bottom: 3%; 
+		}
+
+		.modal {
+			display: none; 
+			position: fixed; 
+			z-index: 1; 
+			left: 0;
+			top: 0;
+			width: 100%; 
+			height: 100%;
+			overflow: auto; 
+			background-color: rgb(0,0,0); 
+			background-color: rgba(0,0,0,0.4); 
+		}
+
+		/* Modal Content Box */
+		.modal-content {
+			background-color: #fefefe;
+			margin: 15% auto;
+			border: 1px solid #888;
+			width: 80%; 
+		}
+
+		.modal-header {
+			font-size: larger;
+		}
+
+		/* The Close Button */
+		.close {
+			color: #aaa;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+			padding: 1%;
+		}
+
+		.close:hover,
+		.close:focus {
+			color: black;
+			text-decoration: none;
+			cursor: pointer;
+		}
+		.results {
+			width: fit-content;
+			
+		}
+		
+	</style>
+</head>
+<body>
+	<img class="background" src="image3.jpg" alt="Aleq">
+	<div class="content">
+		<div class="header"> 
+			<h class="heading"> Image Scraper </h>  
+			<p class="description"> Java Web Scraper to get all images from any website! </p>
+		</div>
+		
+		<div class="input">
+			<form class="form">
+				<p class="url-input-text">Enter URL of the website of the form: http://www.xyz.com</p>
+				<input onClick="this.select();" class="url-input-field" type="text" name="url" placeholder="Enter URL to be scraped">
+			</form>
+			<button class="submit-button" type="button">Submit!</button>
+		</div>
+		<div id="myModal" class="modal">
+			<div class="modal-dialog modal-dialog-scrollable">
+				
+				<div class="modal-content">
+					<h class="modal-header"></h>
+					<span class="close">&times;</span>
+					<ul class="results">
+	  
+					</ul>
+				</div>
+			</div>
+			
+		</div>
+		
+	</div>
+	<script>
+		var resultList = document.querySelector('ul.results');
+		var urlInput = document.querySelector('input[name=url]');
+		var modal = document.getElementById("myModal");
+		var span = document.getElementsByClassName("close")[0];
+		var totalImagesFound = 0;
+
+		span.onclick = function() {
+		modal.style.display = "none";
+		}
+		window.onclick = function(event) {
+		if (event.target == modal) {
+			modal.style.display = "none";
+		}
+		}
+
+		apiCallBack = function(xhr, callback) {
+			if (xhr.readyState == XMLHttpRequest.DONE) {
+				if (xhr.status != 200) {
+					let message = xhr.status + ":" + xhr.statusText + ":"
+							+ xhr.responseText;
+					alert(message);
+					throw 'API call returned bad code: ' + xhr.status;
+				}
+				let response = xhr.responseText ? JSON.parse(xhr.responseText)
+						: null;
+				if (callback) {
+					callback(response);
+				}
+			}
+		}
+
+		updateList = function(response) {
+			resultList.innerHTML = '';
+			
+			modal.style.display = "block";
+			
+			document.getElementsByClassName('modal-header')[0].innerHTML = "Number of images found: " + response.length ;
+			totalImagesFound = response.length;
+			for (var i = 0; i < response.length; i++) {
+				var img = document.createElement("img");
+				img.width = 200;
+				img.height = 200;
+				img.border = "1px solid black";
+				window.open(img.src);
+				img.src = response[i];
+				resultList.appendChild(img);
+			}
+		}
+
+		makeApiCall = function(url, method, obj, callback) {
+			let xhr = new XMLHttpRequest();
+			xhr.open(method, url);
+			xhr.onreadystatechange = apiCallBack.bind(null, xhr, callback);
+			xhr.send(obj ? obj instanceof FormData || obj.constructor == String ? obj : JSON.stringify(obj) : null);
+		}
+
+		validateURL = function() {
+			try { 
+				return Boolean(new URL(urlInput.value)); 
+			}
+			catch(e){ 
+				return false; 
+			}
+		}
+
+		document.querySelector('button').addEventListener("click", function(event) {
+			event.preventDefault();
+
+			if (!validateURL()) {
+				alert("You have entered an invalid URL!")
+				return
+			}
+			makeApiCall('/main?url=' + urlInput.value, 'POST', null, updateList);
+				
+		});
+	</script>
+</body>
+
+</html>
